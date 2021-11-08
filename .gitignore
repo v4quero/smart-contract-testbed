@@ -1,0 +1,11 @@
+/resources/tmp/
+/resources/results/
+/resources/evaluation/equal/
+/resources/win/
+/resources/solc-versions
+
+/venv
+/__pycache__/
+/logic/__pycache__/
+/logic/tools/__pycache__/
+/server/__pycache__/

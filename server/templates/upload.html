@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block body_paras %}onload="updateContractType()"{% endblock %}
+
+{% block title %}Upload Contract{% endblock %}
+{% block head %}
+    {{ super() }}
+    <script src="{{ url_for('static',filename='upload.js') }}" type="text/javascript"></script>
+{% endblock %}
+
+
+{% block content %}
+    <form method="POST" action="{{ url_for('results') }}" enctype="multipart/form-data" onsubmit="clearSession()">
+        <h2>Upload Smart Contract:</h2>
+        <div>
+            <input id="file" type="file" accept="{{ contract_extensions }}" name="file" required onchange="updateSubmitButton(); updateContractType(); updateAvailableTools({{ bytecode_incompatible_tool_names|safe }});">
+        </div>
+        <div id="contract_name_div" >
+            <label for="contract_name">Contract name:</label>
+            <input name="contract_name" type="text" id="contract_name" onchange="updateContractType()">
+        </div>
+        <h2>Select Tools:</h2>
+        <table>
+            <tr>
+                <th class="center">Tool:</th>
+                <th class="center">Activate:</th>
+            </tr>
+            {% for tool in tools %}
+                <tr>
+                    <td class="center" ><a {% if tool.link %} href="{{ tool.link }}" target="_blank" {% endif %}>{{ tool.name }}</a></td>
+                    <td class="center"><input type="checkbox" name="{{ tool.name }}"  class="{{ tool.name }}" onchange="updateSubmitButton()"></td>
+                </tr>
+            {% endfor %}
+        </table>
+        <input id="submit" type="submit" value="Test Smart Contract" disabled onsubmit="clearSession();">
+    </form>
+
+{% endblock %}

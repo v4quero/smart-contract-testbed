@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Results{% endblock %}
+
+{% block content %}
+    {% set contract= test_run._contract%}
+    <h2>Results for {% if contract.is_solidity_contract %}Contract {{ contract.name }} in {% endif %} file {{ contract.filename }}:</h2>
+    <h3>Please reload the webpage to update your results.</h3>
+    {% set tools=test_run._tools %}
+    <table>
+            <tr>
+                <th colspan="2">Testing Parameters:</th>
+                <th class="center" colspan={{ tools|length }}>Tools:</th>
+            </tr>
+            <tr>
+                <th class="center"></th>
+                <th class="center">Title</th>
+                {% for tool in tools %}
+                    <th class="center"><a {% if tool.link %} href="{{ tool.link }}" target="_blank" {% endif %}>{{ tool.name }}</a></th>
+                {% endfor %}
+            </tr>
+                <td></td>
+                <td>Execution Time:</td>
+                {% for tool in tools %}
+                    {% set tool_test_run=test_run.get_tool_test_run(tool) %}
+                    <td>{% if tool_test_run.get_terminated() %}{% set execution_time = tool_test_run.get_execution_time().total_seconds() %}{{ (execution_time/60)|round|int }}m {{ (execution_time%60)|round|int }}s{% endif %}</td>
+                {% endfor %}
+            {% if contract.is_solidity_contract %}
+                <tr>
+                    <td></td>
+                    <td>Tool Analyses Multiple Contracts:</td>
+                    {% for tool in tools %}
+                    <td class="center">{% if tool.analyses_whole_file %}True{% else %}False{% endif %}</td>
+                    {% endfor %}
+                </tr>
+            {% endif %}
+            <tr>
+                <th colspan="2">Security Issues:</th>
+                <th class="center" colspan={{ tools|length }}>Tools:</th>
+            </tr>
+            <tr>
+                <th class="center"><a href="https://swcregistry.io/" target="_blank">SWC-ID</a></th>
+                <th class="center">Title</th>
+                {% for tool in tools %}
+                    <th class="center"><a {% if tool.link %} href="{{ tool.link }}" target="_blank" {% endif %}>{{ tool.name }}</a></th>
+                {% endfor %}
+            </tr>
+            {% set  issues = test_run.get_security_issues_statuses() %}
+            {% for issue in issues %}
+                <tr>
+                    <td>{% if issue.swc_id is not none %}{{ issue.swc_id }}{% endif %}</td>
+                    <td class="tooltip">{% if issue.description is not none %}<span class="tooltiptext">{{ issue.description }}</span>{% endif %}<a {% if issue.link is not none %}href="{{ issue.link }}" target="_blank"{% endif %} >{{ issue.title }}</a></td>
+
+                    {% for tool in tools %}
+                        {% set status = issues[issue][tool] %}
+                        <td class="center">
+                            <div class="tooltip">
+                                <span class="tooltiptext">{{ status }}</span>
+                                <img src="{{ url_for('static',filename='images/'+status+'.svg') }}" alt="{{ status }}" width="15px">
+                            </div>
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            <tr>
+                <th colspan="2">Errors during the testing process:</th>
+                <th class="center" colspan={{ tools|length }}>Tools:</th>
+            </tr>
+            <tr>
+                <th class="center"></th>
+                <th class="center">Title</th>
+                {% for tool in tools %}
+                    <th class="center"><a {% if tool.link %} href="{{ tool.link }}" target="_blank" {% endif %}>{{ tool.name }}</a></th>
+                {% endfor %}
+            </tr>
+            {% set  errors = test_run.get_errors_statuses() %}
+            {% for error in errors %}
+                <tr>
+                    <td></td>
+                    <td class="tooltip">{% if error.description is not none %}<span class="tooltiptext">{{ error.description }}</span>{% endif %}<a {% if error.link %}href="{{ error.link }}" target="_blank"{% endif %} >{{ error.title }}</a></td>
+
+                    {% for tool in tools %}
+                        {% set status = errors[error][tool] %}
+                        <td class="center">
+                            <div class="tooltip">
+                                <span class="tooltiptext">{{ status }}</span>
+                                <img src="{{ url_for('static',filename='images/'+status+'.svg') }}" alt="{{ status }}" width="15px">
+                            </div>
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            <tr>
+                <td></td>
+                <td></td>
+                {% for tool in tools %}
+                    <td class="center">{% if test_run.get_tool_test_run(tool).get_terminated() %}<a href="{{ url_for('get_result_file',tool_name=tool.name) }}">report file</a>{% endif %}</td>
+                {% endfor %}
+            </tr>
+    </table>
+
+{%  endblock %}
